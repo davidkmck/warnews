@@ -121,14 +121,18 @@
     const container = document.getElementById('news-container');
     container.innerHTML = '<div class="loader">Scanning global outlets...</div>';
 
-    // Widened to 24 hours for better reliability
+    // 24-hour window for better results
     const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     
-    // Using "top-headlines" instead of "everything" is often more reliable for Free Keys
-    const url = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&from=${yesterday}&sortBy=relevancy&language=en&apiKey=${API_KEY}`;
+    // The original NewsAPI URL
+    const targetUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&from=${yesterday}&sortBy=relevancy&language=en&apiKey=${API_KEY}`;
+
+    // WE ADD THE PROXY HERE:
+    // This tells corsproxy.io to go fetch the news for us so NewsAPI doesn't block it.
+    const proxiedUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
 
     try {
-        const response = await fetch(url);
+        const response = await fetch(proxiedUrl);
         const data = await response.json();
 
         if (data.status === "error") {
@@ -142,9 +146,11 @@
             container.innerHTML = '<div class="loader">No major updates found in the last 24 hours.</div>';
         }
     } catch (error) {
-        container.innerHTML = '<div class="loader">Connection failed. Check your internet or API key.</div>';
+        container.innerHTML = '<div class="loader">The Proxy is busy. Please wait a moment and try again.</div>';
+        console.error(error);
     }
 }
+
 
 
         function renderArticles(articles) {
