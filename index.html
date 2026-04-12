@@ -116,30 +116,36 @@
     <script>
         // INSERT YOUR API KEY HERE
         const API_KEY = 'd7e7eae234764e7695a1b235b4d947f8';
-        
+
         async function fetchNews(query) {
-            const container = document.getElementById('news-container');
-            container.innerHTML = '<div class="loader">Scanning global outlets...</div>';
+    const container = document.getElementById('news-container');
+    container.innerHTML = '<div class="loader">Scanning global outlets...</div>';
 
-            // We look for news from the last 6 hours
-            const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
-            
-            // The URL for NewsAPI
-            const url = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&from=${sixHoursAgo}&sortBy=publishedAt&language=en&apiKey=${API_KEY}`;
+    // Widened to 24 hours for better reliability
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    
+    // Using "top-headlines" instead of "everything" is often more reliable for Free Keys
+    const url = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&from=${yesterday}&sortBy=relevancy&language=en&apiKey=${API_KEY}`;
 
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
 
-                if (data.articles && data.articles.length > 0) {
-                    renderArticles(data.articles);
-                } else {
-                    container.innerHTML = '<div class="loader">No new articles in the last 6 hours.</div>';
-                }
-            } catch (error) {
-                container.innerHTML = '<div class="loader">Error connecting to news servers.</div>';
-            }
+        if (data.status === "error") {
+            container.innerHTML = `<div class="loader">API Error: ${data.message}</div>`;
+            return;
         }
+
+        if (data.articles && data.articles.length > 0) {
+            renderArticles(data.articles);
+        } else {
+            container.innerHTML = '<div class="loader">No major updates found in the last 24 hours.</div>';
+        }
+    } catch (error) {
+        container.innerHTML = '<div class="loader">Connection failed. Check your internet or API key.</div>';
+    }
+}
+
 
         function renderArticles(articles) {
             const container = document.getElementById('news-container');
