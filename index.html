@@ -117,39 +117,51 @@
         // INSERT YOUR API KEY HERE
         const API_KEY = 'd7e7eae234764e7695a1b235b4d947f8';
 
-        async function fetchNews(query) {
+async function fetchNews(query) {
     const container = document.getElementById('news-container');
     container.innerHTML = '<div class="loader">Scanning global outlets...</div>';
 
-    // 24-hour window for better results
-    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    // 1. Get today's date in YYYY-MM-DD format (NewsAPI likes this better)
+    const today = new Date().toISOString().split('T')[0];
     
-    // The original NewsAPI URL
-    const targetUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&from=${yesterday}&sortBy=relevancy&language=en&apiKey=${API_KEY}`;
+    // 2. Simplified URL (Removed the complex 'from' timestamp)
+    const targetUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&from=${today}&sortBy=publishedAt&language=en&apiKey=${API_KEY}`;
 
-    // WE ADD THE PROXY HERE:
-    // This tells corsproxy.io to go fetch the news for us so NewsAPI doesn't block it.
     const proxiedUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
 
     try {
         const response = await fetch(proxiedUrl);
         const data = await response.json();
 
+        // Check if the API is actually returning an error
         if (data.status === "error") {
-            container.innerHTML = `<div class="loader">API Error: ${data.message}</div>`;
+            container.innerHTML = `<div class="loader">Error: ${data.message}</div>`;
             return;
         }
 
         if (data.articles && data.articles.length > 0) {
             renderArticles(data.articles);
         } else {
-            container.innerHTML = '<div class="loader">No major updates found in the last 24 hours.</div>';
+            // 3. Fallback: If "today" is empty, try searching without a date limit
+            container.innerHTML = '<div class="loader">Nothing today. Checking last 48 hours...</div>';
+            const fallbackUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&sortBy=publishedAt&language=en&apiKey=${API_KEY}`;
+            const proxiedFallback = `https://corsproxy.io/?${encodeURIComponent(fallbackUrl)}`;
+            
+            const fbResponse = await fetch(proxiedFallback);
+            const fbData = await fbResponse.json();
+            
+            if (fbData.articles && fbData.articles.length > 0) {
+                renderArticles(fbData.articles);
+            } else {
+                container.innerHTML = '<div class="loader">No articles found. Try a different tab.</div>';
+            }
         }
     } catch (error) {
-        container.innerHTML = '<div class="loader">The Proxy is busy. Please wait a moment and try again.</div>';
-        console.error(error);
+        container.innerHTML = '<div class="loader">Connection failed. Check your internet.</div>';
     }
 }
+        
+       
 
 
 
