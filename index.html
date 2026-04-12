@@ -103,12 +103,14 @@
         <h1>War News</h1>
     </header>
 
-    <div class="tabs">
-        <div class="tab active" onclick="switchTab('Iran OR Israel OR USA', this)">Middle East</div>
-        <div class="tab" onclick="switchTab('Russia OR Ukraine', this)">Russia-Ukraine</div>
-        <div class="tab" onclick="switchTab('Sudan OR Myanmar', this)">Other Conflicts</div>
-    </div>
-
+<div class="tabs">
+    <div class="tab active" onclick="switchTab('(Iran OR Israel OR USA) AND (war OR conflict OR military OR missile OR ceasefire) NOT (soccer OR football OR NBA OR celtics OR premier)', this)">Middle East</div>
+    
+    <div class="tab" onclick="switchTab('(Russia OR Ukraine) AND (frontline OR invasion OR drone OR shell OR NATO) NOT (sport OR olympics OR tennis)', this)">Russia-Ukraine</div>
+    
+    <div class="tab" onclick="switchTab('(Sudan OR Myanmar OR Ethiopia) AND (fighting OR coup OR rebels) NOT (travel OR tourism)', this)">Other Conflicts</div>
+</div>
+    
     <div id="news-container">
         <div class="loader">Select a tab to load headlines...</div>
     </div>
@@ -125,8 +127,11 @@ async function fetchNews(query) {
     const today = new Date().toISOString().split('T')[0];
     
     // 2. Simplified URL (Removed the complex 'from' timestamp)
-    const targetUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&from=${today}&sortBy=publishedAt&language=en&apiKey=${API_KEY}`;
+    //const targetUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&from=${today}&sortBy=publishedAt&language=en&apiKey=${API_KEY}`;
 
+    // This adds '&searchIn=title' to focus only on headlines
+const targetUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&searchIn=title&from=${today}&sortBy=publishedAt&language=en&apiKey=${API_KEY}`;
+    
     const proxiedUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
 
     try {
