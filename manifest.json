@@ -1,19 +1,19 @@
 {
     "name": "War News Tracker",
     "short_name": "WarNews",
-    "start_url": "index.html",
+    "start_url": "./index.html",
     "display": "standalone",
     "background_color": "#0a0a0c",
     "theme_color": "#ef4444",
     "orientation": "portrait",
     "icons": [
         {
-            "src": "war-news.png",
+            "src": "./war-news.png",
             "sizes": "192x192",
             "type": "image/png"
         },
         {
-            "src": "war-news.png",
+            "src": "./war-news.png",
             "sizes": "512x512",
             "type": "image/png"
         }
