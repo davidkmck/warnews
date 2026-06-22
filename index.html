@@ -2,29 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="manifest" href='data:application/manifest+json,{
-        "name": "War News Tracker",
-        "short_name": "WarNews",
-        "start_url": "index.html",
-        "display": "standalone",
-        "background_color": "#0a0a0c",
-        "theme_color": "#ef4444",
-        "orientation": "portrait",
-        "icons": [
-            {
-                "src": "icon.png",
-                "sizes": "192x192",
-                "type": "image/png"
-            },
-            {
-                "src": "icon.png",
-                "sizes": "512x512",
-                "type": "image/png"
-            }
-        ]
-    }'>
+    <link rel="manifest" href="manifest.json">
     
-    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="apple-touch-icon" href="war-news.png">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="WarNews">
 
@@ -139,11 +119,12 @@ window.onload = () => {
     }
 };
 
-// Register a basic service worker to fulfill technical installation requirements
+// Register the physical service worker file safely
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGV2ZW50ID0+IHsgZXZlbnQucmVzcG9uZFdpdGgoZmV0Y2goZXZlbnQucmVxdWVzdCkpOyB9KTs=')
-        .catch(err => console.log('Service worker registration skipped:', err));
+        navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('Service Worker registered completely!', reg.scope))
+        .catch(err => console.log('Service worker registration failed:', err));
     });
 }
 </script>
