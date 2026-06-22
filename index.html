@@ -2,7 +2,32 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="manifest" href='data:application/manifest+json,{"name":"War News","short_name":"WarNews","start_url":"index.html","display":"standalone","background_color":"#0a0a0c","theme_color":"#ef4444"}'>
+    <link rel="manifest" href='data:application/manifest+json,{
+        "name": "War News Tracker",
+        "short_name": "WarNews",
+        "start_url": "index.html",
+        "display": "standalone",
+        "background_color": "#0a0a0c",
+        "theme_color": "#ef4444",
+        "orientation": "portrait",
+        "icons": [
+            {
+                "src": "icon.png",
+                "sizes": "192x192",
+                "type": "image/png"
+            },
+            {
+                "src": "icon.png",
+                "sizes": "512x512",
+                "type": "image/png"
+            }
+        ]
+    }'>
+    
+    <link rel="apple-touch-icon" href="icon.png">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="WarNews">
+
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -34,9 +59,7 @@
 
 <div class="tabs">
     <div class="tab active" onclick="switchTab('((Russia OR Ukraine OR Putin OR Zelensky OR Budanov OR Lavrov OR Peskov) AND (frontline OR invasion OR battlefield OR military OR shelling OR NATO OR Crimea OR Kyiv OR Donetsk OR Kherson OR Kharkiv OR Odesa OR Lviv OR Zaporizhzhia OR Moscow OR Belarus OR Belgorod OR Sumy OR Rostov OR firing OR strike)) NOT (sport OR olympics OR tennis OR oil OR energy OR gas OR corporate OR price OR stocks)', this)">Russia-Ukraine</div>
-    
     <div class="tab" onclick="switchTab('(Iran OR Israel OR Gaza OR Lebanon) AND (war OR conflict OR military OR missile OR airstrike OR ceasefire) NOT (soccer OR football OR NBA OR celtics OR stocks OR business)', this)">Middle East</div>
-    
     <div class="tab" onclick="switchTab('(Sudan OR Myanmar OR Ethiopia) AND (fighting OR coup OR rebels) NOT (travel OR tourism)', this)">Other Conflicts</div>
 </div>
 
@@ -67,7 +90,6 @@ async function fetchNews(query) {
         if (data.articles && data.articles.length > 0) {
             renderArticles(data.articles);
         } else {
-            // Fallback: Check past 48 hours but keep search restricted to titles to maintain target accuracy
             container.innerHTML = '<div class="loader">Nothing today. Checking last 48 hours...</div>';
             const fallbackUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&searchIn=title&sortBy=publishedAt&language=en&apiKey=${API_KEY}`;
             const proxiedFallback = `https://corsproxy.io/?${encodeURIComponent(fallbackUrl)}`;
@@ -113,10 +135,17 @@ window.onload = () => {
     if(API_KEY === 'YOUR_API_KEY_HERE') {
         document.getElementById('news-container').innerHTML = '<div class="loader">Please add your NewsAPI key.</div>';
     } else {
-        // Automatically fetch with the expanded roster query on initial app launch
         fetchNews('((Russia OR Ukraine OR Putin OR Zelensky OR Budanov OR Lavrov OR Peskov) AND (frontline OR invasion OR battlefield OR military OR shelling OR NATO OR Crimea OR Kyiv OR Donetsk OR Kherson OR Kharkiv OR Odesa OR Lviv OR Zaporizhzhia OR Moscow OR Belarus OR Belgorod OR Sumy OR Rostov OR firing OR strike)) NOT (sport OR olympics OR tennis OR oil OR energy OR gas OR corporate OR price OR stocks)');
     }
 };
+
+// Register a basic service worker to fulfill technical installation requirements
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGV2ZW50ID0+IHsgZXZlbnQucmVzcG9uZFdpdGgoZmV0Y2goZXZlbnQucmVxdWVzdCkpOyB9KTs=')
+        .catch(err => console.log('Service worker registration skipped:', err));
+    });
+}
 </script>
 </body>
 </html>
