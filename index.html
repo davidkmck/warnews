@@ -8,139 +8,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>War News Tracker</title>
     <meta name="theme-color" content="#0a0a0c">
-    
     <style>
-        body { 
-            margin: 0; 
-            background: #0a0a0c; 
-            color: #e2e8f0; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-
+        body {margin: 0; background: #0a0a0c; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; flex-direction: column; height: 100vh; }
         /* Header */
-        header {
-            padding: 20px;
-            background: #111114;
-            border-bottom: 1px solid #27272a;
-            text-align: center;
-        }
-
+        header {padding: 20px; background: #111114; border-bottom: 1px solid #27272a; text-align: center; }
         h1 { margin: 0; font-size: 1.5rem; letter-spacing: 2px; color: #ef4444; text-transform: uppercase; }
-
         /* Tabs */
-        .tabs {
-            display: flex;
-            background: #111114;
-            border-bottom: 1px solid #27272a;
-            overflow-x: auto;
-        }
-
-        .tab {
-            flex: 1;
-            padding: 15px;
-            text-align: center;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: bold;
-            color: #71717a;
-            border-bottom: 2px solid transparent;
-            white-space: nowrap;
-        }
-
-        .tab.active {
-            color: #ef4444;
-            border-bottom: 2px solid #ef4444;
-            background: rgba(239, 68, 68, 0.05);
-        }
-
+        .tabs {display: flex; background: #111114; border-bottom: 1px solid #27272a; overflow-x: auto; }
+        .tab {flex: 1; padding: 15px; text-align: center; cursor: pointer; font-size: 0.85rem; font-weight: bold; color: #71717a; border-bottom: 2px solid transparent; white-space: nowrap; }
+        .tab.active {color: #ef4444; border-bottom: 2px solid #ef4444; background: rgba(239, 68, 68, 0.05); }
         /* News List */
-        #news-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px;
-        }
-
-        .article {
-            background: #18181b;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 12px;
-            border: 1px solid #27272a;
-            transition: 0.2s;
-        }
-
+        #news-container {flex: 1; overflow-y: auto; padding: 15px; }
+        .article {background: #18181b; padding: 15px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #27272a; transition: 0.2s; }
         .article:active { background: #27272a; }
-
-        .article-title {
-            font-size: 1rem;
-            font-weight: 600;
-            line-height: 1.4;
-            margin-bottom: 8px;
-            display: block;
-            text-decoration: none;
-            color: #f8fafc;
-        }
-
-        .article-meta {
-            font-size: 0.75rem;
-            color: #71717a;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .loader {
-            text-align: center;
-            padding: 40px;
-            color: #71717a;
-            font-style: italic;
-        }
+        .article-title {font-size: 1rem; font-weight: 600; line-height: 1.4; margin-bottom: 8px; display: block; text-decoration: none; color: #f8fafc; }
+        .article-meta {font-size: 0.75rem; color: #71717a; display: flex; justify-content: space-between; }
+        .loader {text-align: center; padding: 40px; color: #71717a; font-style: italic; }
     </style>
 </head>
 <body>
 
 <header>
-        <h1>War News</h1>
-    </header>
+    <h1>War News</h1>
+</header>
 
-    <div class="tabs">
-        <div class="tab active" onclick="switchTab('(Russia OR Ukraine) AND (frontline OR invasion OR drone OR shell OR NATO) NOT (sport OR olympics OR tennis)', this)">Russia-Ukraine</div>
-        
-        <div class="tab" onclick="switchTab('(Iran OR Israel OR USA) AND (war OR conflict OR military OR missile OR ceasefire) NOT (soccer OR football OR NBA OR celtics OR premier)', this)">Middle East</div>
-        
-        <div class="tab" onclick="switchTab('(Sudan OR Myanmar OR Ethiopia) AND (fighting OR coup OR rebels) NOT (travel OR tourism)', this)">Other Conflicts</div>
-    </div>
+<div class="tabs">
+    <div class="tab active" onclick="switchTab('((Russia OR Ukraine OR Putin OR Zelensky OR Budanov OR Lavrov OR Peskov) AND (frontline OR invasion OR battlefield OR military OR shelling OR NATO OR Crimea OR Kyiv OR Donetsk OR Kherson OR Kharkiv OR Odesa OR Lviv OR Zaporizhzhia OR Moscow OR Belarus OR Belgorod OR Sumy OR Rostov OR firing OR strike)) NOT (sport OR olympics OR tennis OR oil OR energy OR gas OR corporate OR price OR stocks)', this)">Russia-Ukraine</div>
+    
+    <div class="tab" onclick="switchTab('(Iran OR Israel OR Gaza OR Lebanon) AND (war OR conflict OR military OR missile OR airstrike OR ceasefire) NOT (soccer OR football OR NBA OR celtics OR stocks OR business)', this)">Middle East</div>
+    
+    <div class="tab" onclick="switchTab('(Sudan OR Myanmar OR Ethiopia) AND (fighting OR coup OR rebels) NOT (travel OR tourism)', this)">Other Conflicts</div>
+</div>
 
-    <div id="news-container">
-        <div class="loader">Select a tab to load headlines...</div>
-    </div>
+<div id="news-container">
+    <div class="loader">Select a tab to load headlines...</div>
+</div>
 
-    <script>
-        // INSERT YOUR API KEY HERE
-        const API_KEY = 'd7e7eae234764e7695a1b235b4d947f8';
+<script>
+const API_KEY = 'd7e7eae234764e7695a1b235b4d947f8';
 
 async function fetchNews(query) {
     const container = document.getElementById('news-container');
     container.innerHTML = '<div class="loader">Scanning global outlets...</div>';
 
-    // 1. Get today's date in YYYY-MM-DD format (NewsAPI likes this better)
     const today = new Date().toISOString().split('T')[0];
-    
-    // 2. Simplified URL (Removed the complex 'from' timestamp)
-    //const targetUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&from=${today}&sortBy=publishedAt&language=en&apiKey=${API_KEY}`;
-
-    // This adds '&searchIn=title' to focus only on headlines
-const targetUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&searchIn=title&from=${today}&sortBy=publishedAt&language=en&apiKey=${API_KEY}`;
-    
+    const targetUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&searchIn=title&from=${today}&sortBy=publishedAt&language=en&apiKey=${API_KEY}`;
     const proxiedUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
 
     try {
         const response = await fetch(proxiedUrl);
         const data = await response.json();
 
-        // Check if the API is actually returning an error
         if (data.status === "error") {
             container.innerHTML = `<div class="loader">Error: ${data.message}</div>`;
             return;
@@ -149,14 +67,13 @@ const targetUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(quer
         if (data.articles && data.articles.length > 0) {
             renderArticles(data.articles);
         } else {
-            // 3. Fallback: If "today" is empty, try searching without a date limit
+            // Fallback: Check past 48 hours but keep search restricted to titles to maintain target accuracy
             container.innerHTML = '<div class="loader">Nothing today. Checking last 48 hours...</div>';
-            const fallbackUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&sortBy=publishedAt&language=en&apiKey=${API_KEY}`;
+            const fallbackUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&searchIn=title&sortBy=publishedAt&language=en&apiKey=${API_KEY}`;
             const proxiedFallback = `https://corsproxy.io/?${encodeURIComponent(fallbackUrl)}`;
-            
             const fbResponse = await fetch(proxiedFallback);
             const fbData = await fbResponse.json();
-            
+
             if (fbData.articles && fbData.articles.length > 0) {
                 renderArticles(fbData.articles);
             } else {
@@ -167,51 +84,39 @@ const targetUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(quer
         container.innerHTML = '<div class="loader">Connection failed. Check your internet.</div>';
     }
 }
-        
-       
 
+function renderArticles(articles) {
+    const container = document.getElementById('news-container');
+    container.innerHTML = '';
+    articles.forEach(art => {
+        const div = document.createElement('div');
+        div.className = 'article';
+        const time = new Date(art.publishedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        div.innerHTML = `
+            <a href="${art.url}" target="_blank" class="article-title">${art.title}</a>
+            <div class="article-meta">
+                <span>${art.source.name}</span>
+                <span>${time}</span>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
 
+function switchTab(query, element) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    element.classList.add('active');
+    fetchNews(query);
+}
 
-        function renderArticles(articles) {
-            const container = document.getElementById('news-container');
-            container.innerHTML = '';
-
-            articles.forEach(art => {
-                const div = document.createElement('div');
-                div.className = 'article';
-                
-                // Clean up the time display
-                const time = new Date(art.publishedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-                div.innerHTML = `
-                    <a href="${art.url}" target="_blank" class="article-title">${art.title}</a>
-                    <div class="article-meta">
-                        <span>${art.source.name}</span>
-                        <span>${time}</span>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-        }
-
-        function switchTab(query, element) {
-            // Update UI
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            element.classList.add('active');
-            
-            // Fetch Data
-            fetchNews(query);
-        }
-
-        // Load the first tab automatically on start
-        window.onload = () => {
-            if(API_KEY === 'YOUR_API_KEY_HERE') {
-                document.getElementById('news-container').innerHTML = '<div class="loader">Please add your NewsAPI key.</div>';
-            } else {
-                // Automatically loads Russia-Ukraine on start
-                fetchNews('(Russia OR Ukraine) AND (frontline OR invasion OR drone OR shell OR NATO) NOT (sport OR olympics OR tennis)');
-            }
-        };
-    </script>
+window.onload = () => {
+    if(API_KEY === 'YOUR_API_KEY_HERE') {
+        document.getElementById('news-container').innerHTML = '<div class="loader">Please add your NewsAPI key.</div>';
+    } else {
+        // Automatically fetch with the expanded roster query on initial app launch
+        fetchNews('((Russia OR Ukraine OR Putin OR Zelensky OR Budanov OR Lavrov OR Peskov) AND (frontline OR invasion OR battlefield OR military OR shelling OR NATO OR Crimea OR Kyiv OR Donetsk OR Kherson OR Kharkiv OR Odesa OR Lviv OR Zaporizhzhia OR Moscow OR Belarus OR Belgorod OR Sumy OR Rostov OR firing OR strike)) NOT (sport OR olympics OR tennis OR oil OR energy OR gas OR corporate OR price OR stocks)');
+    }
+};
+</script>
 </body>
 </html>
