@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <link rel="manifest" href="manifest.json">
     
+    <link rel="icon" href="war-news.png">
     <link rel="apple-touch-icon" href="war-news.png">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="WarNews">
@@ -38,9 +39,9 @@
 </header>
 
 <div class="tabs">
-    <div class="tab active" onclick="switchTab('((Russia OR Ukraine OR Putin OR Zelensky OR Budanov OR Lavrov OR Peskov) AND (frontline OR invasion OR battlefield OR military OR shelling OR NATO OR Crimea OR Kyiv OR Donetsk OR Kherson OR Kharkiv OR Odesa OR Lviv OR Zaporizhzhia OR Moscow OR Belarus OR Belgorod OR Sumy OR Rostov OR firing OR strike)) NOT (sport OR olympics OR tennis OR oil OR energy OR gas OR corporate OR price OR stocks)', this)">Russia-Ukraine</div>
-    <div class="tab" onclick="switchTab('(Iran OR Israel OR Gaza OR Lebanon) AND (war OR conflict OR military OR missile OR airstrike OR ceasefire) NOT (soccer OR football OR NBA OR celtics OR stocks OR business)', this)">Middle East</div>
-    <div class="tab" onclick="switchTab('(Sudan OR Myanmar OR Ethiopia) AND (fighting OR coup OR rebels) NOT (travel OR tourism)', this)">Other Conflicts</div>
+    <div class="tab active" onclick="switchTab('Russia Ukraine military war', this)">Russia-Ukraine</div>
+    <div class="tab" onclick="switchTab('Middle East conflict military airstrike', this)">Middle East</div>
+    <div class="tab" onclick="switchTab('Sudan Myanmar Ethiopia conflict military', this)">Other Conflicts</div>
 </div>
 
 <div id="news-container">
@@ -52,10 +53,10 @@ async function fetchNews(query) {
     const container = document.getElementById('news-container');
     container.innerHTML = '<div class="loader">Scanning global outlets...</div>';
 
-    // Google News RSS Search URL
-    const googleRssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query + ' when:2d')}&hl=en-US&gl=US&ceid=US:en`;
+    // Google News RSS feed URL
+    const googleRssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
     
-    // rss2json API conversion URL
+    // Convert RSS via rss2json
     const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(googleRssUrl)}`;
 
     try {
@@ -83,7 +84,6 @@ function renderArticles(items) {
             ? new Date(item.pubDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             : '';
         
-        // Extract publisher source name if available
         const sourceName = item.author || 'Google News';
 
         div.innerHTML = `
@@ -104,10 +104,10 @@ function switchTab(query, element) {
 }
 
 window.onload = () => {
-    fetchNews('((Russia OR Ukraine OR Putin OR Zelensky OR Budanov OR Lavrov OR Peskov) AND (frontline OR invasion OR battlefield OR military OR shelling OR NATO OR Crimea OR Kyiv OR Donetsk OR Kherson OR Kharkiv OR Odesa OR Lviv OR Zaporizhzhia OR Moscow OR Belarus OR Belgorod OR Sumy OR Rostov OR firing OR strike)) NOT (sport OR olympics OR tennis OR oil OR energy OR gas OR corporate OR price OR stocks)');
+    fetchNews('Russia Ukraine military war');
 };
 
-// Register physical service worker
+// Register service worker
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js')
