@@ -52,31 +52,40 @@ async function fetchNews(query) {
     const container = document.getElementById('news-container');
     container.innerHTML = '<div class="loader">Scanning global outlets...</div>';
 
-    // Google News RSS feed URL
     const googleRssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
     
-    // Use allorigins to get raw RSS XML string
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(googleRssUrl)}`;
+    // Primary and fallback proxy endpoints for raw RSS XML fetch
+    const proxyUrls = [
+        `https://corsproxy.io/?${encodeURIComponent(googleRssUrl)}`,
+        `https://thingproxy.freeboard.io/fetch/${googleRssUrl}`
+    ];
 
-    try {
-        const response = await fetch(proxyUrl);
-        const data = await response.json();
+    let xmlText = null;
 
-        if (data.contents) {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(data.contents, 'text/xml');
-            const items = Array.from(xmlDoc.querySelectorAll('item'));
-
-            if (items.length > 0) {
-                renderArticles(items);
-            } else {
-                container.innerHTML = '<div class="loader">No recent articles found. Try a different tab.</div>';
+    for (const proxyUrl of proxyUrls) {
+        try {
+            const response = await fetch(proxyUrl);
+            if (response.ok) {
+                xmlText = await response.text();
+                if (xmlText && xmlText.includes('<item>')) break;
             }
-        } else {
-            container.innerHTML = '<div class="loader">Unable to fetch feed content.</div>';
+        } catch (e) {
+            console.warn(`Failed fetching from ${proxyUrl}:`, e);
         }
-    } catch (error) {
-        container.innerHTML = '<div class="loader">Connection failed. Check your internet connection.</div>';
+    }
+
+    if (xmlText) {
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+        const items = Array.from(xmlDoc.querySelectorAll('item'));
+
+        if (items.length > 0) {
+            renderArticles(items);
+        } else {
+            container.innerHTML = '<div class="loader">No recent articles found. Try a different tab.</div>';
+        }
+    } else {
+        container.innerHTML = '<div class="loader">Unable to load feed. Please try again.</div>';
     }
 }
 
@@ -117,7 +126,6 @@ window.onload = () => {
     fetchNews('Ukraine war');
 };
 
-// Register service worker
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js')
@@ -128,3 +136,4 @@ if ('serviceWorker' in navigator) {
 </script>
 </body>
 </html>
+
