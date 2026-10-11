@@ -39,8 +39,8 @@
 </header>
 
 <div class="tabs">
-    <div class="tab active" onclick="switchTab('Ukraine OR Russia war', this)">Russia-Ukraine</div>
-    <div class="tab" onclick="switchTab('Gaza OR Israel OR Lebanon OR Iran OR Yemen war', this)">Middle East</div>
+    <div class="tab active" onclick="switchTab('Ukraine war', this)">Russia-Ukraine</div>
+    <div class="tab" onclick="switchTab('Middle East conflict', this)">Middle East</div>
 </div>
 
 <div id="news-container">
@@ -55,17 +55,25 @@ async function fetchNews(query) {
     // Google News RSS feed URL
     const googleRssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
     
-    // Convert RSS via rss2json
-    const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(googleRssUrl)}`;
+    // Use allorigins to get raw RSS XML string
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(googleRssUrl)}`;
 
     try {
-        const response = await fetch(apiUrl);
+        const response = await fetch(proxyUrl);
         const data = await response.json();
 
-        if (data.status === 'ok' && data.items && data.items.length > 0) {
-            renderArticles(data.items);
+        if (data.contents) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(data.contents, 'text/xml');
+            const items = Array.from(xmlDoc.querySelectorAll('item'));
+
+            if (items.length > 0) {
+                renderArticles(items);
+            } else {
+                container.innerHTML = '<div class="loader">No recent articles found. Try a different tab.</div>';
+            }
         } else {
-            container.innerHTML = '<div class="loader">No recent articles found. Try a different tab.</div>';
+            container.innerHTML = '<div class="loader">Unable to fetch feed content.</div>';
         }
     } catch (error) {
         container.innerHTML = '<div class="loader">Connection failed. Check your internet connection.</div>';
@@ -75,20 +83,23 @@ async function fetchNews(query) {
 function renderArticles(items) {
     const container = document.getElementById('news-container');
     container.innerHTML = '';
+    
     items.forEach(item => {
+        const title = item.querySelector('title')?.textContent || 'Untitled';
+        const link = item.querySelector('link')?.textContent || '#';
+        const pubDateText = item.querySelector('pubDate')?.textContent;
+        const sourceText = item.querySelector('source')?.textContent || 'Google News';
+
+        const time = pubDateText 
+            ? new Date(pubDateText).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : '';
+
         const div = document.createElement('div');
         div.className = 'article';
-        
-        const time = item.pubDate 
-            ? new Date(item.pubDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            : '';
-        
-        const sourceName = item.author || 'Google News';
-
         div.innerHTML = `
-            <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="article-title">${item.title}</a>
+            <a href="${link}" target="_blank" rel="noopener noreferrer" class="article-title">${title}</a>
             <div class="article-meta">
-                <span>${sourceName}</span>
+                <span>${sourceText}</span>
                 <span>${time}</span>
             </div>
         `;
@@ -103,7 +114,7 @@ function switchTab(query, element) {
 }
 
 window.onload = () => {
-    fetchNews('Ukraine OR Russia war');
+    fetchNews('Ukraine war');
 };
 
 // Register service worker
