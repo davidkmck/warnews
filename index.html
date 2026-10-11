@@ -38,14 +38,11 @@
     <h1>War News</h1>
 </header>
 
-
-
 <div class="tabs">
-    <div class="tab active" onclick="switchTab('Russia war OR Ukraine war', this)">Russia-Ukraine</div>
-    <div class="tab" onclick="switchTab('Israel war OR Gaza conflict OR Lebanon airstrike OR Iran military OR Yemen war', this)">Middle East</div>
-    <div class="tab" onclick="switchTab('Sudan war OR Myanmar conflict OR Ethiopia military', this)">Other Conflicts</div>
+    <div class="tab active" onclick="switchTab('Ukraine OR Russia war', this)">Russia-Ukraine</div>
+    <div class="tab" onclick="switchTab('Gaza OR Israel OR Lebanon OR Iran OR Yemen war', this)">Middle East</div>
 </div>
-    
+
 <div id="news-container">
     <div class="loader">Select a tab to load headlines...</div>
 </div>
@@ -106,7 +103,7 @@ function switchTab(query, element) {
 }
 
 window.onload = () => {
-    fetchNews('Russia OR Ukraine war');
+    fetchNews('Ukraine OR Russia war');
 };
 
 // Register service worker
