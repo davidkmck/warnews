@@ -39,8 +39,8 @@
 </header>
 
 <div class="tabs">
-    <div class="tab active" onclick="switchTab('Ukraine war', this)">Russia-Ukraine</div>
-    <div class="tab" onclick="switchTab('Middle East conflict', this)">Middle East</div>
+    <div class="tab active" onclick="switchTab('Russia OR Ukraine war', this)">Russia-Ukraine</div>
+    <div class="tab" onclick="switchTab('Middle East OR Israel OR Gaza OR Lebanon OR Iran OR Yemen OR Houthis', this)">Middle East</div>
 </div>
 
 <div id="news-container">
@@ -52,63 +52,43 @@ async function fetchNews(query) {
     const container = document.getElementById('news-container');
     container.innerHTML = '<div class="loader">Scanning global outlets...</div>';
 
+    // Google News RSS feed URL
     const googleRssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
     
-    // Primary and fallback proxy endpoints for raw RSS XML fetch
-    const proxyUrls = [
-        `https://corsproxy.io/?${encodeURIComponent(googleRssUrl)}`,
-        `https://thingproxy.freeboard.io/fetch/${googleRssUrl}`
-    ];
+    // Convert RSS via rss2json
+    const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(googleRssUrl)}`;
 
-    let xmlText = null;
+    try {
+        const response = await fetch(apiUrl);
+        const data = await response.json();
 
-    for (const proxyUrl of proxyUrls) {
-        try {
-            const response = await fetch(proxyUrl);
-            if (response.ok) {
-                xmlText = await response.text();
-                if (xmlText && xmlText.includes('<item>')) break;
-            }
-        } catch (e) {
-            console.warn(`Failed fetching from ${proxyUrl}:`, e);
-        }
-    }
-
-    if (xmlText) {
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-        const items = Array.from(xmlDoc.querySelectorAll('item'));
-
-        if (items.length > 0) {
-            renderArticles(items);
+        if (data.status === 'ok' && data.items && data.items.length > 0) {
+            renderArticles(data.items);
         } else {
             container.innerHTML = '<div class="loader">No recent articles found. Try a different tab.</div>';
         }
-    } else {
-        container.innerHTML = '<div class="loader">Unable to load feed. Please try again.</div>';
+    } catch (error) {
+        container.innerHTML = '<div class="loader">Connection failed. Check your internet connection.</div>';
     }
 }
 
 function renderArticles(items) {
     const container = document.getElementById('news-container');
     container.innerHTML = '';
-    
     items.forEach(item => {
-        const title = item.querySelector('title')?.textContent || 'Untitled';
-        const link = item.querySelector('link')?.textContent || '#';
-        const pubDateText = item.querySelector('pubDate')?.textContent;
-        const sourceText = item.querySelector('source')?.textContent || 'Google News';
-
-        const time = pubDateText 
-            ? new Date(pubDateText).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            : '';
-
         const div = document.createElement('div');
         div.className = 'article';
+        
+        const time = item.pubDate 
+            ? new Date(item.pubDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : '';
+        
+        const sourceName = item.author || 'Google News';
+
         div.innerHTML = `
-            <a href="${link}" target="_blank" rel="noopener noreferrer" class="article-title">${title}</a>
+            <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="article-title">${item.title}</a>
             <div class="article-meta">
-                <span>${sourceText}</span>
+                <span>${sourceName}</span>
                 <span>${time}</span>
             </div>
         `;
@@ -123,9 +103,10 @@ function switchTab(query, element) {
 }
 
 window.onload = () => {
-    fetchNews('Ukraine war');
+    fetchNews('Russia OR Ukraine war');
 };
 
+// Register service worker
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js')
@@ -136,4 +117,3 @@ if ('serviceWorker' in navigator) {
 </script>
 </body>
 </html>
-
