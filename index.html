@@ -50,17 +50,18 @@
 <script>
 const API_KEY = 'd7e7eae234764e7695a1b235b4d947f8';
 
-async function fetchNews(query) {
+    async function fetchNews(query) {
     const container = document.getElementById('news-container');
     container.innerHTML = '<div class="loader">Scanning global outlets...</div>';
 
     const today = new Date().toISOString().split('T')[0];
     const targetUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&searchIn=title&from=${today}&sortBy=publishedAt&language=en&apiKey=${API_KEY}`;
-    const proxiedUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+    const proxiedUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
 
     try {
         const response = await fetch(proxiedUrl);
-        const data = await response.json();
+        const resData = await response.json();
+        const data = JSON.parse(resData.contents); // parse JSON contents from allorigins
 
         if (data.status === "error") {
             container.innerHTML = `<div class="loader">Error: ${data.message}</div>`;
@@ -72,9 +73,10 @@ async function fetchNews(query) {
         } else {
             container.innerHTML = '<div class="loader">Nothing today. Checking last 48 hours...</div>';
             const fallbackUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&searchIn=title&sortBy=publishedAt&language=en&apiKey=${API_KEY}`;
-            const proxiedFallback = `https://corsproxy.io/?${encodeURIComponent(fallbackUrl)}`;
+            const proxiedFallback = `https://api.allorigins.win/get?url=${encodeURIComponent(fallbackUrl)}`;
             const fbResponse = await fetch(proxiedFallback);
-            const fbData = await fbResponse.json();
+            const fbResData = await fbResponse.json();
+            const fbData = JSON.parse(fbResData.contents);
 
             if (fbData.articles && fbData.articles.length > 0) {
                 renderArticles(fbData.articles);
